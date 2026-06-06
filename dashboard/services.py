@@ -9,6 +9,12 @@ API_KEY = os.getenv("WEATHER_AI_API_KEY")
 
 
 def get_weather(lat, lon, days=7, ai=True, units="metric", lang="en"):
+    if not API_KEY:
+        return {
+            "error": "Missing API key",
+            "details": "WEATHER_AI_API_KEY not set"
+        }
+
     headers = {
         "Authorization": f"Bearer {API_KEY}"
     }
@@ -39,10 +45,9 @@ def get_weather(lat, lon, days=7, ai=True, units="metric", lang="en"):
 
     raw = response.json()
 
-    # -------------------------------
-    # SAFE EXTRACTION (NO NESTING BUGS)
-    # -------------------------------
-
+    # -------------------------
+    # SAFE NORMALIZATION
+    # -------------------------
     current = (
         raw.get("current")
         or raw.get("data", {}).get("current")
@@ -69,9 +74,13 @@ def get_weather(lat, lon, days=7, ai=True, units="metric", lang="en"):
     if not condition:
         condition = "Unknown"
 
+    # OPTIONAL: forecast safe extraction
+    forecast = raw.get("forecast", [])
+
     return {
         "temperature": temperature,
         "humidity": humidity,
         "wind_speed": wind_speed,
-        "condition": condition
+        "condition": condition,
+        "forecast": forecast
     }
